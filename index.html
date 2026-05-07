@@ -33,7 +33,7 @@
   .msg-title { font-weight: 700; font-size: 14px; }
   .msg-close { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 0 4px; }
   .msg-type { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
-  .msg-text { font-size: 13px; line-height: 1.7; color: var(--text); background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 16px; white-space: pre-wrap; }
+  .msg-text { font-size: 13px; line-height: 1.7; color: var(--text); background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 16px; white-space: pre-wrap; max-height: 240px; overflow-y: auto; }
   .msg-btns { display: flex; gap: 10px; }
   .msg-copy-btn { flex: 1; padding: 13px; background: var(--green); color: #0a0f0d; border: none; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; }
   .msg-next-btn { flex: 1; padding: 13px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 12px; font-weight: 700; font-size: 12px; cursor: pointer; }
@@ -170,10 +170,9 @@
 <div class="toast" id="toast">✓ Gespeichert</div>
 
 <script>
-const CK='lt_contacts_v4';
-const DK='lt_decided_v4';
-let CONTACTS=[],decided={},history=[],currentFilter='all',isAnimating=false,queue=[];
-let pendingAction=null;
+const CK='lt_contacts_v5';
+const DK='lt_decided_v5';
+let CONTACTS=[],decided={},history=[],currentFilter='all',isAnimating=false,queue=[],pendingAction=null;
 const scoreColor=s=>s>=9?'#00e5a0':s>=7?'#ffd166':'#ff9a3c';
 
 function getMsg(contact,type){
@@ -183,7 +182,7 @@ function getMsg(contact,type){
     return 'Hi '+first+',\n\nich wollte kurz nachhaken, hast du meine letzte Nachricht gesehen? Würde mich freuen von dir zu hören.';
   }
   if(group==='9-10'){
-    return 'Hi '+first+',\n\nich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus der Immobilienbranche zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.\n\nIch arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Vertrieb und das ganze Thema Immobilien deutlich besser zu mir passen.\n\nDeshalb wollte ich einfach mal auf dich zukommen und fragen, ob du vielleicht Tipps hast oder jemanden kennst, bei dem ich mich mal vorstellen könnte.';
+    return 'Hi '+first+',\n\nich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus der Immobilienbranche zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.\n\nIch arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Vertrieb und das ganze Thema Immobilien deutlich besser zu mir passen.\n\nIch suche aktuell nach einer Möglichkeit einzusteigen und bin offen für alles, ob Festanstellung oder andere Wege. Falls du oder jemand aus deinem Umfeld offen wäre mit mir kurz zu sprechen, würde ich mich sehr freuen.';
   }
   if(group==='7-9'){
     return 'Hi '+first+',\n\nich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus der Immobilienbranche zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.\n\nIch arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Vertrieb und Immobilien deutlich besser zu mir passen.\n\nDu bist ja selbst aktiv im Markt, deshalb wollte ich dich fragen ob du vielleicht kurz Zeit hättest, mir aus deiner Perspektive zu erzählen wie der Einstieg bei dir aussah.';
@@ -195,10 +194,9 @@ function showMsg(action){
   if(queue.length===0)return;
   const contact=queue[0];
   pendingAction=action==='followup'?'bereits':action;
-  const msg=getMsg(contact,action);
   document.getElementById('msgTitle').textContent=contact.firstName+' '+contact.lastName;
   document.getElementById('msgType').textContent=action==='followup'?'FOLLOW UP':'ERSTKONTAKT · GRUPPE '+contact.group;
-  document.getElementById('msgText').textContent=msg;
+  document.getElementById('msgText').textContent=getMsg(contact,action);
   document.getElementById('msgCopied').classList.remove('show');
   document.getElementById('msgOverlay').classList.add('show');
 }
