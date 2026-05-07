@@ -26,6 +26,19 @@
   .modal-progress { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 16px; overflow: hidden; }
   .modal-bar { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; width: 0%; }
   .modal-done-btn { width: 100%; padding: 13px; background: var(--green); color: #0a0f0d; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; display: none; margin-top: 8px; }
+  .msg-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; align-items: flex-end; justify-content: center; }
+  .msg-overlay.show { display: flex; }
+  .msg-sheet { background: var(--surface); border: 1px solid var(--border); border-radius: 20px 20px 0 0; padding: 24px 20px 36px; width: 100%; max-width: 520px; }
+  .msg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .msg-title { font-weight: 700; font-size: 14px; }
+  .msg-close { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 0 4px; }
+  .msg-type { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+  .msg-text { font-size: 13px; line-height: 1.7; color: var(--text); background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 16px; white-space: pre-wrap; }
+  .msg-btns { display: flex; gap: 10px; }
+  .msg-copy-btn { flex: 1; padding: 13px; background: var(--green); color: #0a0f0d; border: none; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; }
+  .msg-next-btn { flex: 1; padding: 13px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 12px; font-weight: 700; font-size: 12px; cursor: pointer; }
+  .msg-copied { text-align: center; font-size: 11px; color: var(--green); margin-top: 10px; opacity: 0; transition: opacity 0.3s; }
+  .msg-copied.show { opacity: 1; }
   .app { display: none; flex-direction: column; align-items: center; width: 100%; min-height: 100vh; }
   .app.show { display: flex; }
   header { width: 100%; max-width: 520px; padding: 24px 20px 0; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 10; }
@@ -56,9 +69,10 @@
   .card-company { font-weight: 700; font-size: 14px; margin-bottom: 3px; }
   .card-meta { font-size: 11px; color: var(--muted); margin-bottom: 14px; }
   .card-link { display: inline-flex; align-items: center; gap: 5px; color: var(--accent); text-decoration: none; font-size: 11px; border: 1px solid rgba(108,99,255,0.3); padding: 4px 11px; border-radius: 6px; }
-  .actions { display: flex; gap: 12px; margin-top: 16px; width: 100%; max-width: 520px; padding: 0 20px; position: relative; z-index: 10; }
-  .btn-a { flex: 1; padding: 14px 8px; border: none; border-radius: 14px; background: var(--green); color: #0a0f0d; font-weight: 800; font-size: 12px; letter-spacing: 0.05em; cursor: pointer; box-shadow: 0 4px 24px rgba(0,229,160,0.3); }
-  .btn-b { flex: 1; padding: 14px 8px; border: 1px solid rgba(255,107,107,0.3); border-radius: 14px; background: var(--surface2); color: var(--red); font-weight: 800; font-size: 12px; letter-spacing: 0.05em; cursor: pointer; }
+  .actions { display: flex; gap: 10px; margin-top: 16px; width: 100%; max-width: 520px; padding: 0 20px; position: relative; z-index: 10; flex-wrap: wrap; }
+  .btn-a { flex: 1; padding: 13px 8px; border: none; border-radius: 14px; background: var(--green); color: #0a0f0d; font-weight: 800; font-size: 11px; letter-spacing: 0.05em; cursor: pointer; box-shadow: 0 4px 24px rgba(0,229,160,0.3); min-width: 100px; }
+  .btn-b { flex: 1; padding: 13px 8px; border: 1px solid rgba(255,107,107,0.3); border-radius: 14px; background: var(--surface2); color: var(--red); font-weight: 800; font-size: 11px; letter-spacing: 0.05em; cursor: pointer; min-width: 100px; }
+  .btn-f { width: 100%; padding: 11px 8px; border: 1px solid rgba(108,99,255,0.3); border-radius: 14px; background: none; color: var(--accent); font-weight: 700; font-size: 11px; letter-spacing: 0.05em; cursor: pointer; }
   .stats-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; width: 100%; max-width: 520px; padding: 14px 20px 0; position: relative; z-index: 10; }
   .stat-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 8px; text-align: center; }
   .stat-num { font-weight: 700; font-size: 18px; display: block; margin-bottom: 2px; }
@@ -69,7 +83,7 @@
   .undo-btn.visible { opacity: 1; pointer-events: all; }
   .reset-row { width: 100%; max-width: 520px; padding: 0 20px 24px; position: relative; z-index: 10; text-align: center; }
   .new-csv-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-family: monospace; font-size: 11px; padding: 7px 16px; border-radius: 8px; cursor: pointer; }
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--green); color: var(--green); font-family: monospace; font-size: 11px; padding: 7px 18px; border-radius: 100px; opacity: 0; transition: opacity 0.3s; z-index: 200; pointer-events: none; white-space: nowrap; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--green); color: var(--green); font-family: monospace; font-size: 11px; padding: 7px 18px; border-radius: 100px; opacity: 0; transition: opacity 0.3s; z-index: 300; pointer-events: none; white-space: nowrap; }
   .toast.show { opacity: 1; }
   .done-card { text-align: center; padding: 24px 8px; }
   .done-icon { font-size: 40px; margin-bottom: 10px; }
@@ -100,6 +114,22 @@
   </div>
 </div>
 
+<div class="msg-overlay" id="msgOverlay">
+  <div class="msg-sheet">
+    <div class="msg-header">
+      <div class="msg-title" id="msgTitle">Nachricht</div>
+      <button class="msg-close" onclick="closeMsgAndDecide()">✕</button>
+    </div>
+    <div class="msg-type" id="msgType"></div>
+    <div class="msg-text" id="msgText"></div>
+    <div class="msg-btns">
+      <button class="msg-copy-btn" onclick="copyMsg()">📋 Kopieren</button>
+      <button class="msg-next-btn" onclick="closeMsgAndDecide()">Weiter →</button>
+    </div>
+    <div class="msg-copied" id="msgCopied">✓ In Zwischenablage kopiert</div>
+  </div>
+</div>
+
 <div class="app" id="mainApp">
   <header>
     <div class="logo">LinkedIn <span>Outreach</span></div>
@@ -119,8 +149,9 @@
     </div>
   </div>
   <div class="actions" id="actionRow">
-    <button class="btn-a" onclick="decide('anschreiben')">✉ ANSCHREIBEN</button>
+    <button class="btn-a" onclick="showMsg('anschreiben')">✉ ANSCHREIBEN</button>
     <button class="btn-b" onclick="decide('bereits')">✓ BEREITS</button>
+    <button class="btn-f" onclick="showMsg('followup')">↩ FOLLOW UP</button>
   </div>
   <div class="stats-bar">
     <div class="stat-pill"><span class="stat-num" id="statPending" style="color:#6c63ff">0</span><span class="stat-label">Offen</span></div>
@@ -142,7 +173,53 @@
 const CK='lt_contacts_v4';
 const DK='lt_decided_v4';
 let CONTACTS=[],decided={},history=[],currentFilter='all',isAnimating=false,queue=[];
+let pendingAction=null;
 const scoreColor=s=>s>=9?'#00e5a0':s>=7?'#ffd166':'#ff9a3c';
+
+function getMsg(contact,type){
+  const first=contact.firstName;
+  const group=contact.group;
+  if(type==='followup'){
+    return 'Hi '+first+',\n\nich wollte kurz nachhaken, hast du meine letzte Nachricht gesehen? Würde mich freuen von dir zu hören.';
+  }
+  if(group==='9-10'){
+    return 'Hi '+first+',\n\nich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus der Immobilienbranche zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.\n\nIch arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Vertrieb und das ganze Thema Immobilien deutlich besser zu mir passen.\n\nDeshalb wollte ich einfach mal auf dich zukommen und fragen, ob du vielleicht Tipps hast oder jemanden kennst, bei dem ich mich mal vorstellen könnte.';
+  }
+  if(group==='7-9'){
+    return 'Hi '+first+',\n\nich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus der Immobilienbranche zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.\n\nIch arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Vertrieb und Immobilien deutlich besser zu mir passen.\n\nDu bist ja selbst aktiv im Markt, deshalb wollte ich dich fragen ob du vielleicht kurz Zeit hättest, mir aus deiner Perspektive zu erzählen wie der Einstieg bei dir aussah.';
+  }
+  return 'Hi '+first+',\n\nich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus angrenzenden Bereichen zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.\n\nIch arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Immobilien und Vertrieb deutlich besser zu mir passen.\n\nZwischen deinem Bereich und Immobilien gibt es oft mehr Berührungspunkte als man denkt, deshalb wollte ich einfach mal Kontakt aufnehmen.';
+}
+
+function showMsg(action){
+  if(queue.length===0)return;
+  const contact=queue[0];
+  pendingAction=action==='followup'?'bereits':action;
+  const msg=getMsg(contact,action);
+  document.getElementById('msgTitle').textContent=contact.firstName+' '+contact.lastName;
+  document.getElementById('msgType').textContent=action==='followup'?'FOLLOW UP':'ERSTKONTAKT · GRUPPE '+contact.group;
+  document.getElementById('msgText').textContent=msg;
+  document.getElementById('msgCopied').classList.remove('show');
+  document.getElementById('msgOverlay').classList.add('show');
+}
+
+function copyMsg(){
+  const text=document.getElementById('msgText').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    document.getElementById('msgCopied').classList.add('show');
+  }).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');
+    document.body.removeChild(ta);
+    document.getElementById('msgCopied').classList.add('show');
+  });
+}
+
+function closeMsgAndDecide(){
+  document.getElementById('msgOverlay').classList.remove('show');
+  if(pendingAction){decide(pendingAction);pendingAction=null;}
+}
 
 function splitCSVLine(line){
   const result=[];let cur='',inQ=false;
@@ -319,7 +396,7 @@ function exportCSV(){
 }
 
 document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowLeft')decide('anschreiben');
+  if(e.key==='ArrowLeft')showMsg('anschreiben');
   if(e.key==='ArrowRight')decide('bereits');
   if((e.ctrlKey||e.metaKey)&&e.key==='z')undo();
 });
