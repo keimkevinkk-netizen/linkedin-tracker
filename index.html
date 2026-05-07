@@ -175,21 +175,17 @@ const DK='lt_decided_v5';
 let CONTACTS=[],decided={},history=[],currentFilter='all',isAnimating=false,queue=[],pendingAction=null;
 const scoreColor=s=>s>=9?'#00e5a0':s>=7?'#ffd166':'#ff9a3c';
 
+const MSGS = {
+  followup: (first) => `Hi ${first},\n\nHey, ich wollte kurz nachhaken, vielleicht ist meine Nachricht untergegangen.\n\nFalls gerade keine Kapazität ist oder kein Bedarf besteht, absolut kein Problem. Ich wollte es einfach einmal versucht haben.\n\nGrüße, Kevin`,
+  '9-10': (first) => `Hi ${first},\n\nich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus der Immobilienbranche zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.\n\nIch arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Vertrieb und das ganze Thema Immobilien deutlich besser zu mir passen.\n\nIch suche aktuell nach einer Möglichkeit einzusteigen und bin offen für alles, ob Festanstellung oder andere Wege. Falls du oder jemand aus deinem Umfeld offen wäre mit mir kurz zu sprechen, würde ich mich sehr freuen.`,
+  '7-9': (first) => `Hi ${first},\n\nich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus der Immobilienbranche zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.\n\nIch arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Vertrieb und Immobilien deutlich besser zu mir passen.\n\nDu bist ja selbst aktiv im Markt, deshalb wollte ich dich fragen ob du vielleicht kurz Zeit hättest, mir aus deiner Perspektive zu erzählen wie der Einstieg bei dir aussah.`,
+  '5-6': (first) => `Hi ${first},\n\nich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus angrenzenden Bereichen zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.\n\nIch arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Immobilien und Vertrieb deutlich besser zu mir passen.\n\nZwischen deinem Bereich und Immobilien gibt es oft mehr Berührungspunkte als man denkt, deshalb wollte ich einfach mal Kontakt aufnehmen.`
+};
+
 function getMsg(contact,type){
   const first=contact.firstName;
-  const group=contact.group;
-  if(type==='followup'){
-    return 'Hi '+first+',\n\nHey, ich wollte kurz nachhaken, vielleicht ist meine Nachricht untergegangen.
-Falls gerade keine Kapazität ist oder kein Bedarf besteht, absolut kein Problem. Ich wollte es einfach einmal versucht haben.
-Grüße, Kevin';
-  }
-  if(group==='9-10'){
-    return 'Hi '+first+',\n\nich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus der Immobilienbranche zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.\n\nIch arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Vertrieb und das ganze Thema Immobilien deutlich besser zu mir passen.\n\nIch suche aktuell nach einer Möglichkeit einzusteigen und bin offen für alles, ob Festanstellung oder andere Wege. Falls du oder jemand aus deinem Umfeld offen wäre mit mir kurz zu sprechen, würde ich mich sehr freuen.';
-  }
-  if(group==='7-9'){
-    return 'Hi '+first+',\n\nich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus der Immobilienbranche zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.\n\nIch arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Vertrieb und Immobilien deutlich besser zu mir passen.\n\nDu bist ja selbst aktiv im Markt, deshalb wollte ich dich fragen ob du vielleicht kurz Zeit hättest, mir aus deiner Perspektive zu erzählen wie der Einstieg bei dir aussah.';
-  }
-  return 'Hi '+first+',\n\nich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus angrenzenden Bereichen zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.\n\nIch arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Immobilien und Vertrieb deutlich besser zu mir passen.\n\nZwischen deinem Bereich und Immobilien gibt es oft mehr Berührungspunkte als man denkt, deshalb wollte ich einfach mal Kontakt aufnehmen.';
+  if(type==='followup') return MSGS.followup(first);
+  return (MSGS[contact.group]||MSGS['5-6'])(first);
 }
 
 function showMsg(action){
