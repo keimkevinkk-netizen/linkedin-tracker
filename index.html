@@ -4,102 +4,870 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LinkedIn Outreach Tracker</title>
+
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root { --bg: #0a0a0f; --surface: #13131a; --surface2: #1c1c26; --border: #2a2a3a; --accent: #6c63ff; --red: #ff6b6b; --green: #00e5a0; --text: #e8e8f0; --muted: #666680; }
-  body { background: var(--bg); color: var(--text); font-family: monospace; min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
-  body::before { content: ''; position: fixed; top: -40%; left: -20%; width: 80vw; height: 80vh; background: radial-gradient(ellipse, rgba(108,99,255,0.07) 0%, transparent 70%); pointer-events: none; z-index: 0; }
-  .upload-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 24px; position: relative; z-index: 10; text-align: center; }
-  .upload-logo { font-weight: 800; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 40px; }
-  .upload-logo span { color: var(--accent); }
-  .upload-box { width: 100%; max-width: 420px; border: 2px dashed var(--border); border-radius: 20px; padding: 40px 28px; background: var(--surface); }
-  .upload-icon { font-size: 48px; margin-bottom: 16px; }
-  .upload-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-  .upload-sub { font-size: 12px; color: var(--muted); line-height: 1.7; margin-bottom: 24px; }
-  .upload-btn { display: inline-block; padding: 12px 28px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; }
-  #fileInput { display: none; }
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; }
-  .modal-overlay.show { display: flex; }
-  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px; width: 90%; max-width: 400px; }
-  .modal-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
-  .modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.6; }
-  .modal-progress { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 16px; overflow: hidden; }
-  .modal-bar { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; width: 0%; }
-  .modal-done-btn { width: 100%; padding: 13px; background: var(--green); color: #0a0f0d; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; display: none; margin-top: 8px; }
-  .msg-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; align-items: flex-end; justify-content: center; }
-  .msg-overlay.show { display: flex; }
-  .msg-sheet { background: var(--surface); border: 1px solid var(--border); border-radius: 20px 20px 0 0; padding: 24px 20px 36px; width: 100%; max-width: 520px; }
-  .msg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  .msg-title { font-weight: 700; font-size: 14px; }
-  .msg-close { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 0 4px; }
-  .msg-type { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
-  .msg-text { font-size: 13px; line-height: 1.7; color: var(--text); background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 16px; white-space: pre-wrap; max-height: 240px; overflow-y: auto; }
-  .msg-btns { display: flex; gap: 10px; }
-  .msg-copy-btn { flex: 1; padding: 13px; background: var(--green); color: #0a0f0d; border: none; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; }
-  .msg-next-btn { flex: 1; padding: 13px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 12px; font-weight: 700; font-size: 12px; cursor: pointer; }
-  .msg-copied { text-align: center; font-size: 11px; color: var(--green); margin-top: 10px; opacity: 0; transition: opacity 0.3s; }
-  .msg-copied.show { opacity: 1; }
-  .app { display: none; flex-direction: column; align-items: center; width: 100%; min-height: 100vh; }
-  .app.show { display: flex; }
-  header { width: 100%; max-width: 520px; padding: 24px 20px 0; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 10; }
-  .logo { font-weight: 800; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
-  .logo span { color: var(--accent); }
-  .pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 5px 13px; font-size: 11px; color: var(--muted); }
-  .filter-bar { width: 100%; max-width: 520px; padding: 14px 20px 0; display: flex; gap: 8px; position: relative; z-index: 10; }
-  .filter-tab { flex: 1; padding: 7px 4px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--muted); font-family: monospace; font-size: 10px; cursor: pointer; text-align: center; line-height: 1.4; transition: all 0.2s; }
-  .filter-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .filter-tab .tc { display: block; font-weight: 700; font-size: 13px; margin-bottom: 2px; }
-  .card-area { width: 100%; max-width: 520px; padding: 18px 20px 0; position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; }
-  .card-stack { position: relative; width: 100%; height: 300px; }
-  .ghost { position: absolute; border-radius: 20px; background: var(--surface2); border: 1px solid var(--border); }
-  .ghost1 { width: calc(100% - 28px); left: 14px; height: 280px; top: 10px; opacity: 0.4; transform: scale(0.96); }
-  .ghost2 { width: calc(100% - 44px); left: 22px; height: 270px; top: 18px; opacity: 0.2; transform: scale(0.92); }
-  .card { position: absolute; top: 0; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 22px; box-shadow: 0 8px 40px rgba(0,0,0,0.4); }
-  .card.swipe-right { animation: swipeRight 0.36s forwards; }
-  .card.swipe-left { animation: swipeLeft 0.36s forwards; }
-  .card.enter { animation: cardEnter 0.4s forwards; }
-  @keyframes swipeRight { to { transform: translateX(140%) rotate(15deg); opacity: 0; } }
-  @keyframes swipeLeft { to { transform: translateX(-140%) rotate(-15deg); opacity: 0; } }
-  @keyframes cardEnter { from { transform: scale(0.85) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
-  .badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px 3px 8px; border-radius: 100px; font-size: 11px; font-weight: 500; margin-bottom: 14px; }
-  .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-  .card-name { font-weight: 700; font-size: 22px; line-height: 1.15; margin-bottom: 4px; }
-  .card-pos { font-size: 11px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
-  .divider { height: 1px; background: var(--border); margin-bottom: 12px; }
-  .card-company { font-weight: 700; font-size: 14px; margin-bottom: 3px; }
-  .card-meta { font-size: 11px; color: var(--muted); margin-bottom: 14px; }
-  .card-link { display: inline-flex; align-items: center; gap: 5px; color: var(--accent); text-decoration: none; font-size: 11px; border: 1px solid rgba(108,99,255,0.3); padding: 4px 11px; border-radius: 6px; }
-  .actions { display: flex; gap: 10px; margin-top: 16px; width: 100%; max-width: 520px; padding: 0 20px; position: relative; z-index: 10; flex-wrap: wrap; }
-  .btn-a { flex: 1; padding: 13px 8px; border: none; border-radius: 14px; background: var(--green); color: #0a0f0d; font-weight: 800; font-size: 11px; letter-spacing: 0.05em; cursor: pointer; box-shadow: 0 4px 24px rgba(0,229,160,0.3); min-width: 100px; }
-  .btn-b { flex: 1; padding: 13px 8px; border: 1px solid rgba(255,107,107,0.3); border-radius: 14px; background: var(--surface2); color: var(--red); font-weight: 800; font-size: 11px; letter-spacing: 0.05em; cursor: pointer; min-width: 100px; }
-  .btn-f { width: 100%; padding: 11px 8px; border: 1px solid rgba(108,99,255,0.3); border-radius: 14px; background: none; color: var(--accent); font-weight: 700; font-size: 11px; letter-spacing: 0.05em; cursor: pointer; }
-  .stats-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; width: 100%; max-width: 520px; padding: 14px 20px 0; position: relative; z-index: 10; }
-  .stat-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 8px; text-align: center; }
-  .stat-num { font-weight: 700; font-size: 18px; display: block; margin-bottom: 2px; }
-  .stat-label { font-size: 10px; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
-  .bottom-row { width: 100%; max-width: 520px; padding: 10px 20px 8px; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 10; }
-  .key-hint { font-size: 10px; color: #444460; }
-  .undo-btn { opacity: 0; pointer-events: none; background: none; border: 1px solid var(--border); color: var(--muted); font-family: monospace; font-size: 11px; padding: 5px 13px; border-radius: 8px; cursor: pointer; transition: opacity 0.2s; }
-  .undo-btn.visible { opacity: 1; pointer-events: all; }
-  .reset-row { width: 100%; max-width: 520px; padding: 0 20px 24px; position: relative; z-index: 10; text-align: center; }
-  .new-csv-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-family: monospace; font-size: 11px; padding: 7px 16px; border-radius: 8px; cursor: pointer; }
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--green); color: var(--green); font-family: monospace; font-size: 11px; padding: 7px 18px; border-radius: 100px; opacity: 0; transition: opacity 0.3s; z-index: 300; pointer-events: none; white-space: nowrap; }
-  .toast.show { opacity: 1; }
-  .done-card { text-align: center; padding: 24px 8px; }
-  .done-icon { font-size: 40px; margin-bottom: 10px; }
-  .done-title { font-weight: 700; font-size: 22px; margin-bottom: 8px; }
-  .done-sub { font-size: 13px; color: var(--muted); line-height: 1.8; margin-bottom: 16px; }
-  .export-btn { padding: 11px 22px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; width: 100%; }
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c26;
+    --surface3: #232333;
+    --border: #2a2a3a;
+    --accent: #6c63ff;
+    --red: #ff6b6b;
+    --green: #00e5a0;
+    --text: #e8e8f0;
+    --muted: #74748d;
+    --muted2: #4e4e65;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -40%;
+    left: -20%;
+    width: 80vw;
+    height: 80vh;
+    background: radial-gradient(ellipse, rgba(108,99,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -40%;
+    right: -25%;
+    width: 90vw;
+    height: 90vh;
+    background: radial-gradient(ellipse, rgba(0,229,160,0.045) 0%, transparent 68%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .upload-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 24px;
+    position: relative;
+    z-index: 10;
+    text-align: center;
+  }
+
+  .upload-logo, .logo {
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .upload-logo {
+    margin-bottom: 40px;
+  }
+
+  .upload-logo span, .logo span {
+    color: var(--accent);
+  }
+
+  .upload-box {
+    width: 100%;
+    max-width: 420px;
+    border: 1px dashed var(--border);
+    border-radius: 24px;
+    padding: 42px 28px;
+    background: linear-gradient(180deg, rgba(28,28,38,0.95), rgba(19,19,26,0.95));
+    box-shadow: 0 20px 70px rgba(0,0,0,0.35);
+  }
+
+  .upload-icon {
+    font-size: 46px;
+    margin-bottom: 16px;
+  }
+
+  .upload-title {
+    font-size: 19px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+
+  .upload-sub {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  .upload-btn {
+    display: inline-block;
+    padding: 13px 28px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 8px 28px rgba(108,99,255,0.28);
+  }
+
+  #fileInput {
+    display: none;
+  }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.show {
+    display: flex;
+  }
+
+  .modal {
+    background: linear-gradient(180deg, var(--surface2), var(--surface));
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 28px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 80px rgba(0,0,0,0.55);
+  }
+
+  .modal-title {
+    font-size: 15px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+
+  .modal-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+
+  .modal-progress {
+    height: 5px;
+    background: var(--border);
+    border-radius: 100px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .modal-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 100px;
+    transition: width 0.3s;
+    width: 0%;
+  }
+
+  .modal-done-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--green);
+    color: #07110d;
+    border: none;
+    border-radius: 14px;
+    font-weight: 900;
+    font-size: 13px;
+    cursor: pointer;
+    display: none;
+    margin-top: 8px;
+  }
+
+  .msg-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background:
+      linear-gradient(to bottom, rgba(10,10,15,0.30), rgba(10,10,15,0.96)),
+      rgba(0,0,0,0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .msg-overlay.show {
+    display: flex;
+  }
+
+  .msg-sheet {
+    width: 100%;
+    max-width: 520px;
+    max-height: 86vh;
+    background: linear-gradient(180deg, #181823 0%, #101017 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 28px 28px 0 0;
+    padding: 16px 16px 30px;
+    box-shadow: 0 -20px 70px rgba(0,0,0,0.58);
+    animation: sheetUp 0.28s ease-out;
+  }
+
+  @keyframes sheetUp {
+    from {
+      transform: translateY(24px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .msg-grabber {
+    width: 42px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.18);
+    margin: 0 auto 16px;
+  }
+
+  .msg-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .msg-person {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+  }
+
+  .msg-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #00e5a0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+
+  .msg-title-wrap {
+    min-width: 0;
+  }
+
+  .msg-title {
+    font-size: 14px;
+    font-weight: 900;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .msg-type {
+    margin-top: 3px;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .msg-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .msg-preview-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin: 14px 0 8px;
+  }
+
+  .msg-chat-area {
+    background:
+      radial-gradient(circle at top left, rgba(108,99,255,0.12), transparent 38%),
+      #0d0d14;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 22px;
+    padding: 16px 12px;
+    margin-bottom: 14px;
+    max-height: 360px;
+    overflow-y: auto;
+  }
+
+  .msg-bubble {
+    background: linear-gradient(135deg, #242436, #1b1b28);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px 18px 18px 6px;
+    padding: 14px 15px;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text);
+    white-space: pre-wrap;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+
+  .msg-meta {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 8px;
+    padding-left: 4px;
+  }
+
+  .msg-btns {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 10px;
+  }
+
+  .msg-copy-btn {
+    padding: 14px;
+    background: var(--green);
+    color: #07110d;
+    border: none;
+    border-radius: 16px;
+    font-weight: 900;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    box-shadow: 0 8px 28px rgba(0,229,160,0.25);
+  }
+
+  .msg-next-btn {
+    padding: 14px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 16px;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+  }
+
+  .msg-copied {
+    text-align: center;
+    font-size: 11px;
+    color: var(--green);
+    margin-top: 11px;
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  .msg-copied.show {
+    opacity: 1;
+  }
+
+  .app {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  .app.show {
+    display: flex;
+  }
+
+  header {
+    width: 100%;
+    max-width: 520px;
+    padding: 24px 20px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+  }
+
+  .pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 14px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .filter-bar {
+    width: 100%;
+    max-width: 520px;
+    padding: 14px 20px 0;
+    display: flex;
+    gap: 8px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .filter-tab {
+    flex: 1;
+    padding: 8px 4px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(19,19,26,0.92);
+    color: var(--muted);
+    font-family: monospace;
+    font-size: 10px;
+    cursor: pointer;
+    text-align: center;
+    line-height: 1.4;
+    transition: all 0.2s;
+  }
+
+  .filter-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    box-shadow: 0 8px 26px rgba(108,99,255,0.26);
+  }
+
+  .filter-tab .tc {
+    display: block;
+    font-weight: 900;
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+
+  .card-area {
+    width: 100%;
+    max-width: 520px;
+    padding: 18px 20px 0;
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card-stack {
+    position: relative;
+    width: 100%;
+    height: 300px;
+  }
+
+  .ghost {
+    position: absolute;
+    border-radius: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+
+  .ghost1 {
+    width: calc(100% - 28px);
+    left: 14px;
+    height: 280px;
+    top: 10px;
+    opacity: 0.4;
+    transform: scale(0.96);
+  }
+
+  .ghost2 {
+    width: calc(100% - 44px);
+    left: 22px;
+    height: 270px;
+    top: 18px;
+    opacity: 0.2;
+    transform: scale(0.92);
+  }
+
+  .card {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    background: linear-gradient(180deg, rgba(24,24,34,0.98), rgba(17,17,24,0.98));
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 22px;
+    box-shadow: 0 8px 44px rgba(0,0,0,0.45);
+  }
+
+  .card.swipe-right {
+    animation: swipeRight 0.36s forwards;
+  }
+
+  .card.swipe-left {
+    animation: swipeLeft 0.36s forwards;
+  }
+
+  .card.enter {
+    animation: cardEnter 0.4s forwards;
+  }
+
+  @keyframes swipeRight {
+    to {
+      transform: translateX(140%) rotate(15deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes swipeLeft {
+    to {
+      transform: translateX(-140%) rotate(-15deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes cardEnter {
+    from {
+      transform: scale(0.85) translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .profile-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .profile-main {
+    min-width: 0;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px 4px 8px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .mini-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #00e5a0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .card-name {
+    font-weight: 900;
+    font-size: 22px;
+    line-height: 1.15;
+    margin-bottom: 5px;
+  }
+
+  .card-pos {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin-bottom: 12px;
+  }
+
+  .card-company {
+    font-weight: 900;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .card-meta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 11px;
+    border: 1px solid rgba(108,99,255,0.3);
+    padding: 6px 12px;
+    border-radius: 9px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    width: 100%;
+    max-width: 520px;
+    padding: 0 20px;
+    position: relative;
+    z-index: 10;
+    flex-wrap: wrap;
+  }
+
+  .btn-a {
+    flex: 1;
+    padding: 14px 8px;
+    border: none;
+    border-radius: 16px;
+    background: var(--green);
+    color: #07110d;
+    font-weight: 900;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(0,229,160,0.3);
+    min-width: 100px;
+  }
+
+  .btn-b {
+    flex: 1;
+    padding: 14px 8px;
+    border: 1px solid rgba(255,107,107,0.3);
+    border-radius: 16px;
+    background: var(--surface2);
+    color: var(--red);
+    font-weight: 900;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    min-width: 100px;
+  }
+
+  .btn-f {
+    width: 100%;
+    padding: 12px 8px;
+    border: 1px solid rgba(108,99,255,0.3);
+    border-radius: 16px;
+    background: rgba(108,99,255,0.05);
+    color: var(--accent);
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+  }
+
+  .stats-bar {
+    width: 100%;
+    max-width: 520px;
+    padding: 14px 20px 0;
+    position: relative;
+    z-index: 10;
+  }
+
+  .stat-pill {
+    background: linear-gradient(180deg, rgba(28,28,38,0.95), rgba(19,19,26,0.95));
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-weight: 900;
+    font-size: 28px;
+    display: block;
+    margin-bottom: 4px;
+    color: var(--green);
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .bottom-row {
+    width: 100%;
+    max-width: 520px;
+    padding: 10px 20px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+  }
+
+  .key-hint {
+    font-size: 10px;
+    color: #444460;
+  }
+
+  .undo-btn {
+    opacity: 0;
+    pointer-events: none;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: monospace;
+    font-size: 11px;
+    padding: 6px 13px;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .undo-btn.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .reset-row {
+    width: 100%;
+    max-width: 520px;
+    padding: 0 20px 24px;
+    position: relative;
+    z-index: 10;
+    text-align: center;
+  }
+
+  .new-csv-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: monospace;
+    font-size: 11px;
+    padding: 8px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface2);
+    border: 1px solid var(--green);
+    color: var(--green);
+    font-family: monospace;
+    font-size: 11px;
+    padding: 8px 18px;
+    border-radius: 100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 300;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .toast.show {
+    opacity: 1;
+  }
+
+  .done-card {
+    text-align: center;
+    padding: 24px 8px;
+  }
+
+  .done-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+  }
+
+  .done-title {
+    font-weight: 900;
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+
+  .done-sub {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.8;
+    margin-bottom: 16px;
+  }
+
+  .export-btn {
+    padding: 12px 22px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 13px;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  @media (max-width: 380px) {
+    .card-name {
+      font-size: 20px;
+    }
+
+    .card-stack {
+      height: 315px;
+    }
+
+    .msg-btns {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 </head>
+
 <body>
 
 <div class="upload-screen" id="uploadScreen">
   <div class="upload-logo">LinkedIn <span>Outreach</span></div>
+
   <div class="upload-box">
     <div class="upload-icon">📂</div>
     <div class="upload-title">CSVs hochladen</div>
-    <div class="upload-sub">Wähle alle 3 Dateien gleichzeitig aus:<br><strong>Score_9_10.csv, Score_7_9.csv, Score_5_6.csv</strong></div>
+    <div class="upload-sub">
+      Wähle alle Dateien gleichzeitig aus:<br>
+      <strong>Score_9_10.csv, Score_7_9.csv, Score_5_6.csv</strong>
+    </div>
+
     <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Dateien auswählen</button>
     <input type="file" id="fileInput" accept=".csv" multiple>
   </div>
@@ -116,16 +884,32 @@
 
 <div class="msg-overlay" id="msgOverlay">
   <div class="msg-sheet">
+    <div class="msg-grabber"></div>
+
     <div class="msg-header">
-      <div class="msg-title" id="msgTitle">Nachricht</div>
-      <button class="msg-close" onclick="closeMsgAndDecide()">✕</button>
+      <div class="msg-person">
+        <div class="msg-avatar" id="msgAvatar">K</div>
+        <div class="msg-title-wrap">
+          <div class="msg-title" id="msgTitle">Nachricht</div>
+          <div class="msg-type" id="msgType"></div>
+        </div>
+      </div>
+
+      <button class="msg-close" onclick="closeMsgOnly()">×</button>
     </div>
-    <div class="msg-type" id="msgType"></div>
-    <div class="msg-text" id="msgText"></div>
+
+    <div class="msg-preview-label">Nachrichtenvorschau</div>
+
+    <div class="msg-chat-area">
+      <div class="msg-bubble" id="msgText"></div>
+      <div class="msg-meta">Bereit zum Kopieren für LinkedIn</div>
+    </div>
+
     <div class="msg-btns">
       <button class="msg-copy-btn" onclick="copyMsg()">📋 Kopieren</button>
-      <button class="msg-next-btn" onclick="closeMsgAndDecide()">Weiter →</button>
+      <button class="msg-next-btn" onclick="closeMsgAndDecide()">Erledigt →</button>
     </div>
+
     <div class="msg-copied" id="msgCopied">✓ In Zwischenablage kopiert</div>
   </div>
 </div>
@@ -135,33 +919,53 @@
     <div class="logo">LinkedIn <span>Outreach</span></div>
     <div class="pill"><strong id="hdrDone" style="color:#e8e8f0">0</strong> / <span id="hdrTotal">0</span></div>
   </header>
+
   <div class="filter-bar">
-    <button class="filter-tab active" data-g="all" onclick="setFilter('all')"><span class="tc" id="cnt-all">0</span>Alle</button>
-    <button class="filter-tab" data-g="9-10" onclick="setFilter('9-10')"><span class="tc" id="cnt-9-10">0</span>9–10</button>
-    <button class="filter-tab" data-g="7-9" onclick="setFilter('7-9')"><span class="tc" id="cnt-7-9">0</span>7–9</button>
-    <button class="filter-tab" data-g="5-6" onclick="setFilter('5-6')"><span class="tc" id="cnt-5-6">0</span>5–6</button>
+    <button class="filter-tab active" data-g="all" onclick="setFilter('all')">
+      <span class="tc" id="cnt-all">0</span>Alle
+    </button>
+
+    <button class="filter-tab" data-g="9-10" onclick="setFilter('9-10')">
+      <span class="tc" id="cnt-9-10">0</span>9–10
+    </button>
+
+    <button class="filter-tab" data-g="7-9" onclick="setFilter('7-9')">
+      <span class="tc" id="cnt-7-9">0</span>7–9
+    </button>
+
+    <button class="filter-tab" data-g="5-6" onclick="setFilter('5-6')">
+      <span class="tc" id="cnt-5-6">0</span>5–6
+    </button>
   </div>
+
   <div class="card-area">
     <div class="card-stack">
       <div class="ghost ghost2" id="ghost2"></div>
       <div class="ghost ghost1" id="ghost1"></div>
-      <div class="card" id="mainCard"><div id="cardContent"></div></div>
+      <div class="card" id="mainCard">
+        <div id="cardContent"></div>
+      </div>
     </div>
   </div>
+
   <div class="actions" id="actionRow">
     <button class="btn-a" onclick="showMsg('anschreiben')">✉ ANSCHREIBEN</button>
     <button class="btn-b" onclick="decide('bereits')">✓ BEREITS</button>
     <button class="btn-f" onclick="showMsg('followup')">↩ FOLLOW UP</button>
   </div>
+
   <div class="stats-bar">
-    <div class="stat-pill"><span class="stat-num" id="statPending" style="color:#6c63ff">0</span><span class="stat-label">Offen</span></div>
-    <div class="stat-pill"><span class="stat-num" id="statA" style="color:#00e5a0">0</span><span class="stat-label">Anschreiben</span></div>
-    <div class="stat-pill"><span class="stat-num" id="statB" style="color:#ff6b6b">0</span><span class="stat-label">Erledigt</span></div>
+    <div class="stat-pill">
+      <span class="stat-num" id="statDone">0</span>
+      <span class="stat-label">Erledigt</span>
+    </div>
   </div>
+
   <div class="bottom-row">
     <span class="key-hint">← Anschreiben · → Bereits</span>
     <button class="undo-btn" id="undoBtn" onclick="undo()">↩ Rückgängig</button>
   </div>
+
   <div class="reset-row">
     <button class="new-csv-btn" onclick="resetAll()">↺ Neue CSVs laden</button>
   </div>
@@ -170,246 +974,508 @@
 <div class="toast" id="toast">✓ Gespeichert</div>
 
 <script>
-const CK='lt_contacts_v5';
-const DK='lt_decided_v5';
-let CONTACTS=[],decided={},history=[],currentFilter='all',isAnimating=false,queue=[],pendingAction=null;
-const scoreColor=s=>s>=9?'#00e5a0':s>=7?'#ffd166':'#ff9a3c';
+const CK = 'lt_contacts_v6';
+const DK = 'lt_decided_v6';
+
+let CONTACTS = [];
+let decided = {};
+let history = [];
+let currentFilter = 'all';
+let isAnimating = false;
+let queue = [];
+let pendingAction = null;
+
+const scoreColor = s => s >= 9 ? '#00e5a0' : s >= 7 ? '#ffd166' : '#ff9a3c';
 
 const MSGS = {
-  followup: (first) => `Hi ${first},\n\nHey, ich wollte kurz nachhaken, vielleicht ist meine Nachricht untergegangen.\n\nFalls gerade keine Kapazität ist oder kein Bedarf besteht, absolut kein Problem. Ich wollte es einfach einmal versucht haben.\n\nGrüße, Kevin`,
-  '9-10': (first) => `Hi ${first},\n\nich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus der Immobilienbranche zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.\n\nIch arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Vertrieb und das ganze Thema Immobilien deutlich besser zu mir passen.\n\nIch suche aktuell nach einer Möglichkeit einzusteigen und bin offen für alles, ob Festanstellung oder andere Wege. Falls du oder jemand aus deinem Umfeld offen wäre mit mir kurz zu sprechen, würde ich mich sehr freuen.`,
-  '7-9': (first) => `Hi ${first},\n\nich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus der Immobilienbranche zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.\n\nIch arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Vertrieb und Immobilien deutlich besser zu mir passen.\n\nDu bist ja selbst aktiv im Markt, deshalb wollte ich dich fragen ob du vielleicht kurz Zeit hättest, mir aus deiner Perspektive zu erzählen wie der Einstieg bei dir aussah.`,
-  '5-6': (first) => `Hi ${first},\n\nich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus angrenzenden Bereichen zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.\n\nIch arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Immobilien und Vertrieb deutlich besser zu mir passen.\n\nZwischen deinem Bereich und Immobilien gibt es oft mehr Berührungspunkte als man denkt, deshalb wollte ich einfach mal Kontakt aufnehmen.`
+  followup: (first) => `Hi ${first},
+
+ich wollte kurz nachhaken, vielleicht ist meine Nachricht untergegangen.
+
+Falls gerade keine Kapazität ist oder kein Bedarf besteht, absolut kein Problem. Ich wollte es einfach einmal versucht haben.
+
+Grüße
+Kevin`,
+
+  '9-10': (first) => `Hi ${first},
+
+ich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus der Immobilienbranche zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.
+
+Ich arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Vertrieb und das Thema Immobilien deutlich besser zu mir passen.
+
+Ich suche aktuell nach einer Möglichkeit einzusteigen und bin offen für alles, ob Festanstellung oder andere Wege. Falls du oder jemand aus deinem Umfeld offen wäre, kurz mit mir zu sprechen, würde ich mich sehr freuen.`,
+
+  '7-9': (first) => `Hi ${first},
+
+ich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus der Immobilienbranche zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.
+
+Ich arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Vertrieb und Immobilien deutlich besser zu mir passen.
+
+Du bist ja selbst aktiv im Markt, deshalb wollte ich dich fragen, ob du vielleicht kurz Zeit hättest, mir aus deiner Perspektive zu erzählen, wie der Einstieg bei dir aussah.`,
+
+  '5-6': (first) => `Hi ${first},
+
+ich nutze LinkedIn aktuell bewusst, um mich stärker mit Leuten aus angrenzenden Bereichen zu vernetzen, weil ich selbst den Wechsel in den Immobilienvertrieb anstrebe.
+
+Ich arbeite zwar aktuell noch als Industriemechaniker, merke aber immer mehr, dass Immobilien und Vertrieb deutlich besser zu mir passen.
+
+Zwischen deinem Bereich und Immobilien gibt es oft mehr Berührungspunkte als man denkt, deshalb wollte ich einfach mal Kontakt aufnehmen.`
 };
 
-function getMsg(contact,type){
-  const first=contact.firstName;
-  if(type==='followup') return MSGS.followup(first);
-  return (MSGS[contact.group]||MSGS['5-6'])(first);
+function getMsg(contact, type) {
+  const first = contact.firstName || 'dir';
+
+  if (type === 'followup') {
+    return MSGS.followup(first);
+  }
+
+  return (MSGS[contact.group] || MSGS['5-6'])(first);
 }
 
-function showMsg(action){
-  if(queue.length===0)return;
-  const contact=queue[0];
-  pendingAction=action==='followup'?'bereits':action;
-  document.getElementById('msgTitle').textContent=contact.firstName+' '+contact.lastName;
-  document.getElementById('msgType').textContent=action==='followup'?'FOLLOW UP':'ERSTKONTAKT · GRUPPE '+contact.group;
-  document.getElementById('msgText').textContent=getMsg(contact,action);
+function contactKey(c) {
+  return c.url || (c.firstName + c.lastName + c.company);
+}
+
+function initials(c) {
+  const a = (c.firstName || 'K')[0] || 'K';
+  const b = (c.lastName || '')[0] || '';
+  return (a + b).toUpperCase();
+}
+
+function showMsg(action) {
+  if (queue.length === 0) return;
+
+  const contact = queue[0];
+
+  pendingAction = action;
+
+  document.getElementById('msgTitle').textContent = contact.firstName + ' ' + contact.lastName;
+  document.getElementById('msgAvatar').textContent = initials(contact);
+  document.getElementById('msgType').textContent = action === 'followup'
+    ? 'Follow-up Nachricht'
+    : 'Erstkontakt · Score ' + contact.score + ' · Gruppe ' + contact.group;
+
+  document.getElementById('msgText').textContent = getMsg(contact, action);
   document.getElementById('msgCopied').classList.remove('show');
   document.getElementById('msgOverlay').classList.add('show');
 }
 
-function copyMsg(){
-  const text=document.getElementById('msgText').textContent;
-  navigator.clipboard.writeText(text).then(()=>{
+function copyMsg() {
+  const text = document.getElementById('msgText').textContent;
+
+  navigator.clipboard.writeText(text).then(() => {
     document.getElementById('msgCopied').classList.add('show');
-  }).catch(()=>{
-    const ta=document.createElement('textarea');
-    ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
-    document.body.appendChild(ta);ta.select();document.execCommand('copy');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
     document.body.removeChild(ta);
     document.getElementById('msgCopied').classList.add('show');
   });
 }
 
-function closeMsgAndDecide(){
+function closeMsgOnly() {
   document.getElementById('msgOverlay').classList.remove('show');
-  if(pendingAction){decide(pendingAction);pendingAction=null;}
+  pendingAction = null;
 }
 
-function splitCSVLine(line){
-  const result=[];let cur='',inQ=false;
-  for(let i=0;i<line.length;i++){
-    const ch=line[i];
-    if(ch==='"'){inQ=!inQ;}
-    else if(ch===','&&!inQ){result.push(cur.trim());cur='';}
-    else{cur+=ch;}
+function closeMsgAndDecide() {
+  document.getElementById('msgOverlay').classList.remove('show');
+
+  if (pendingAction) {
+    decide(pendingAction);
+    pendingAction = null;
   }
+}
+
+function splitCSVLine(line) {
+  const result = [];
+  let cur = '';
+  let inQ = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+
+    if (ch === '"') {
+      inQ = !inQ;
+    } else if (ch === ',' && !inQ) {
+      result.push(cur.trim());
+      cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+
   result.push(cur.trim());
   return result;
 }
 
-function parseCSV(text){
-  const lines=text.replace(/\r/g,'').split('\n');
-  let hi=0;
-  for(let i=0;i<Math.min(6,lines.length);i++){
-    if(lines[i].includes('Vorname')||lines[i].includes('First Name')){hi=i;break;}
+function parseCSV(text) {
+  const lines = text.replace(/\r/g, '').split('\n');
+  let hi = 0;
+
+  for (let i = 0; i < Math.min(6, lines.length); i++) {
+    if (lines[i].includes('Vorname') || lines[i].includes('First Name')) {
+      hi = i;
+      break;
+    }
   }
-  const headers=splitCSVLine(lines[hi]);
-  const rows=[];
-  for(let i=hi+1;i<lines.length;i++){
-    const line=lines[i].trim();
-    if(!line)continue;
-    const vals=splitCSVLine(line);
-    const row={};
-    headers.forEach((h,idx)=>{row[h]=(vals[idx]||'').trim();});
+
+  const headers = splitCSVLine(lines[hi]);
+  const rows = [];
+
+  for (let i = hi + 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const vals = splitCSVLine(line);
+    const row = {};
+
+    headers.forEach((h, idx) => {
+      row[h] = (vals[idx] || '').trim();
+    });
+
     rows.push(row);
   }
+
   return rows;
 }
 
-function rowToContact(row){
-  const firstName=row['Vorname']||row['First Name']||'';
-  const lastName=row['Nachname']||row['Last Name']||'';
-  if(!firstName&&!lastName)return null;
-  const score=parseFloat(row['Gesamt Score']||row['Total Score']||'0');
-  if(isNaN(score)||score<5)return null;
-  const group=score>=9?'9-10':score>=7?'7-9':'5-6';
-  return{firstName,lastName,position:row['Position']||'',company:row['Unternehmen']||row['Company']||'',url:row['LinkedIn URL']||row['URL']||'',connectedOn:row['Verbunden seit']||row['Connected On']||'',score,group};
+function rowToContact(row) {
+  const firstName = row['Vorname'] || row['First Name'] || '';
+  const lastName = row['Nachname'] || row['Last Name'] || '';
+
+  if (!firstName && !lastName) return null;
+
+  const score = parseFloat(row['Gesamt Score'] || row['Total Score'] || '0');
+
+  if (isNaN(score) || score < 5) return null;
+
+  const group = score >= 9 ? '9-10' : score >= 7 ? '7-9' : '5-6';
+
+  return {
+    firstName,
+    lastName,
+    position: row['Position'] || '',
+    company: row['Unternehmen'] || row['Company'] || '',
+    url: row['LinkedIn URL'] || row['URL'] || '',
+    connectedOn: row['Verbunden seit'] || row['Connected On'] || '',
+    score,
+    group
+  };
 }
 
-document.getElementById('fileInput').addEventListener('change',function(e){
-  const files=Array.from(e.target.files);
-  if(files.length)processFiles(files);
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  const files = Array.from(e.target.files);
+  if (files.length) processFiles(files);
 });
 
-async function processFiles(files){
+async function processFiles(files) {
   document.getElementById('modalOverlay').classList.add('show');
-  const title=document.getElementById('modalTitle');
-  const sub=document.getElementById('modalSub');
-  const bar=document.getElementById('modalBar');
-  const allContacts=[];
-  for(let i=0;i<files.length;i++){
-    const file=files[i];
-    title.textContent='Lese Datei '+(i+1)+' von '+files.length;
-    sub.textContent=file.name;
-    bar.style.width=((i/files.length)*90)+'%';
-    const text=await new Promise(res=>{const r=new FileReader();r.onload=ev=>res(ev.target.result);r.readAsText(file,'UTF-8');});
-    parseCSV(text).forEach(row=>{const c=rowToContact(row);if(c)allContacts.push(c);});
-    await new Promise(r=>setTimeout(r,0));
+
+  const title = document.getElementById('modalTitle');
+  const sub = document.getElementById('modalSub');
+  const bar = document.getElementById('modalBar');
+
+  const allContacts = [];
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+
+    title.textContent = 'Lese Datei ' + (i + 1) + ' von ' + files.length;
+    sub.textContent = file.name;
+    bar.style.width = ((i / files.length) * 90) + '%';
+
+    const text = await new Promise(res => {
+      const r = new FileReader();
+      r.onload = ev => res(ev.target.result);
+      r.readAsText(file, 'UTF-8');
+    });
+
+    parseCSV(text).forEach(row => {
+      const c = rowToContact(row);
+      if (c) allContacts.push(c);
+    });
+
+    await new Promise(r => setTimeout(r, 0));
   }
-  const seen=new Set();
-  CONTACTS=allContacts.filter(c=>{const k=c.url||(c.firstName+c.lastName);if(seen.has(k))return false;seen.add(k);return true;});
-  CONTACTS.sort((a,b)=>b.score-a.score);
-  bar.style.width='100%';
-  title.textContent='Fertig!';
-  sub.textContent=CONTACTS.length+' Kontakte geladen';
-  try{localStorage.setItem(CK,JSON.stringify(CONTACTS));}catch(e){}
-  decided={};
-  try{localStorage.removeItem(DK);}catch(e){}
-  document.getElementById('modalDoneBtn').style.display='block';
+
+  const seen = new Set();
+
+  CONTACTS = allContacts.filter(c => {
+    const k = contactKey(c);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+
+  CONTACTS.sort((a, b) => b.score - a.score);
+
+  bar.style.width = '100%';
+  title.textContent = 'Fertig!';
+  sub.textContent = CONTACTS.length + ' Kontakte geladen';
+
+  try {
+    localStorage.setItem(CK, JSON.stringify(CONTACTS));
+  } catch(e) {}
+
+  decided = {};
+
+  try {
+    localStorage.removeItem(DK);
+  } catch(e) {}
+
+  document.getElementById('modalDoneBtn').style.display = 'block';
 }
 
-function startApp(){
+function startApp() {
   document.getElementById('modalOverlay').classList.remove('show');
-  document.getElementById('uploadScreen').style.display='none';
+  document.getElementById('uploadScreen').style.display = 'none';
   document.getElementById('mainApp').classList.add('show');
-  updateCounts();buildQueue();renderCard();updateStats();
+
+  updateCounts();
+  buildQueue();
+  renderCard();
+  updateStats();
 }
 
-function resetAll(){
-  try{localStorage.removeItem(CK);localStorage.removeItem(DK);}catch(e){}
+function resetAll() {
+  try {
+    localStorage.removeItem(CK);
+    localStorage.removeItem(DK);
+  } catch(e) {}
+
   location.reload();
 }
 
-function contactKey(c){return c.url||(c.firstName+c.lastName);}
+function buildQueue() {
+  const pool = currentFilter === 'all'
+    ? CONTACTS
+    : CONTACTS.filter(c => c.group === currentFilter);
 
-function buildQueue(){
-  const pool=currentFilter==='all'?CONTACTS:CONTACTS.filter(c=>c.group===currentFilter);
-  queue=pool.filter(c=>!decided[contactKey(c)]);
+  queue = pool.filter(c => !decided[contactKey(c)]);
 }
 
-function setFilter(g){
-  currentFilter=g;
-  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.toggle('active',t.dataset.g===g));
-  buildQueue();renderCard();updateStats();
+function setFilter(g) {
+  currentFilter = g;
+
+  document.querySelectorAll('.filter-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.g === g);
+  });
+
+  buildQueue();
+  renderCard();
+  updateStats();
 }
 
-function updateCounts(){
-  document.getElementById('cnt-all').textContent=CONTACTS.length;
-  ['9-10','7-9','5-6'].forEach(g=>{document.getElementById('cnt-'+g).textContent=CONTACTS.filter(c=>c.group===g).length;});
+function updateCounts() {
+  document.getElementById('cnt-all').textContent = CONTACTS.length;
+
+  ['9-10', '7-9', '5-6'].forEach(g => {
+    document.getElementById('cnt-' + g).textContent = CONTACTS.filter(c => c.group === g).length;
+  });
 }
 
-function renderCard(){
-  const content=document.getElementById('cardContent');
-  const actions=document.getElementById('actionRow');
-  const g1=document.getElementById('ghost1');
-  const g2=document.getElementById('ghost2');
-  if(queue.length===0){
-    const a=Object.values(decided).filter(v=>v==='anschreiben').length;
-    const b=Object.values(decided).filter(v=>v==='bereits').length;
-    content.innerHTML='<div class="done-card"><div class="done-icon">🎯</div><div class="done-title">Alles erledigt!</div><div class="done-sub"><strong style="color:#00e5a0">'+a+'</strong> zum Anschreiben<br><strong style="color:#ff6b6b">'+b+'</strong> bereits angeschrieben</div><button class="export-btn" onclick="exportCSV()">⬇ CSV exportieren</button></div>';
-    actions.style.display='none';g1.style.display='none';g2.style.display='none';
+function renderCard() {
+  const content = document.getElementById('cardContent');
+  const actions = document.getElementById('actionRow');
+  const g1 = document.getElementById('ghost1');
+  const g2 = document.getElementById('ghost2');
+
+  if (queue.length === 0) {
+    const done = Object.keys(decided).length;
+
+    content.innerHTML = `
+      <div class="done-card">
+        <div class="done-icon">🎯</div>
+        <div class="done-title">Alles erledigt!</div>
+        <div class="done-sub">
+          <strong style="color:#00e5a0">${done}</strong> Kontakte bearbeitet
+        </div>
+        <button class="export-btn" onclick="exportCSV()">⬇ CSV exportieren</button>
+      </div>
+    `;
+
+    actions.style.display = 'none';
+    g1.style.display = 'none';
+    g2.style.display = 'none';
     return;
   }
-  actions.style.display='flex';g1.style.display='block';g2.style.display='block';
-  const c=queue[0];const col=scoreColor(c.score);
-  content.innerHTML='<div class="badge" style="background:'+col+'18;color:'+col+';border:1px solid '+col+'33"><span class="badge-dot"></span>Score '+c.score+' · '+c.group+'</div><div class="card-name">'+c.firstName+' '+c.lastName+'</div><div class="card-pos">'+(c.position||'—')+'</div><div class="divider"></div><div class="card-company">'+(c.company||'—')+'</div><div class="card-meta">Verbunden seit '+c.connectedOn+'</div>'+(c.url&&c.url!=='nan'&&c.url!==''?'<a class="card-link" href="'+c.url+'" target="_blank">↗ LinkedIn Profil öffnen</a>':'');
+
+  actions.style.display = 'flex';
+  g1.style.display = 'block';
+  g2.style.display = 'block';
+
+  const c = queue[0];
+  const col = scoreColor(c.score);
+
+  content.innerHTML = `
+    <div class="profile-top">
+      <div class="profile-main">
+        <div class="badge" style="background:${col}18;color:${col};border:1px solid ${col}33">
+          <span class="badge-dot"></span>Score ${c.score} · ${c.group}
+        </div>
+        <div class="card-name">${c.firstName} ${c.lastName}</div>
+      </div>
+
+      <div class="mini-avatar">${initials(c)}</div>
+    </div>
+
+    <div class="card-pos">${c.position || '—'}</div>
+
+    <div class="divider"></div>
+
+    <div class="card-company">${c.company || '—'}</div>
+    <div class="card-meta">Verbunden seit ${c.connectedOn || 'unbekannt'}</div>
+
+    ${
+      c.url && c.url !== 'nan' && c.url !== ''
+        ? `<a class="card-link" href="${c.url}" target="_blank">↗ LinkedIn Profil öffnen</a>`
+        : ''
+    }
+  `;
 }
 
-function decide(action){
-  if(isAnimating||queue.length===0)return;
-  isAnimating=true;
-  const card=document.getElementById('mainCard');
-  const contact=queue.shift();
-  const key=contactKey(contact);
-  decided[key]=action;
-  history.push({key,action});
+function decide(action) {
+  if (isAnimating || queue.length === 0) return;
+
+  isAnimating = true;
+
+  const card = document.getElementById('mainCard');
+  const contact = queue.shift();
+  const key = contactKey(contact);
+
+  decided[key] = action;
+  history.push({ key, action });
+
   saveDecided();
-  card.classList.add(action==='anschreiben'?'swipe-right':'swipe-left');
-  setTimeout(()=>{
-    card.classList.remove('swipe-right','swipe-left');
-    renderCard();card.classList.add('enter');
-    setTimeout(()=>{card.classList.remove('enter');isAnimating=false;},400);
+
+  card.classList.add(action === 'bereits' ? 'swipe-left' : 'swipe-right');
+
+  setTimeout(() => {
+    card.classList.remove('swipe-right', 'swipe-left');
+
+    renderCard();
+
+    card.classList.add('enter');
+
+    setTimeout(() => {
+      card.classList.remove('enter');
+      isAnimating = false;
+    }, 400);
+
     updateStats();
-  },360);
+  }, 360);
+
   document.getElementById('undoBtn').classList.add('visible');
 }
 
-function undo(){
-  if(history.length===0)return;
-  const last=history.pop();
+function undo() {
+  if (history.length === 0) return;
+
+  const last = history.pop();
+
   delete decided[last.key];
   saveDecided();
-  const contact=CONTACTS.find(c=>contactKey(c)===last.key);
-  if(contact&&(currentFilter==='all'||contact.group===currentFilter))queue.unshift(contact);
-  renderCard();updateStats();
-  if(history.length===0)document.getElementById('undoBtn').classList.remove('visible');
+
+  const contact = CONTACTS.find(c => contactKey(c) === last.key);
+
+  if (contact && (currentFilter === 'all' || contact.group === currentFilter)) {
+    queue.unshift(contact);
+  }
+
+  renderCard();
+  updateStats();
+
+  if (history.length === 0) {
+    document.getElementById('undoBtn').classList.remove('visible');
+  }
 }
 
-function saveDecided(){
-  try{localStorage.setItem(DK,JSON.stringify(decided));}catch(e){}
-  const t=document.getElementById('toast');
-  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400);
+function saveDecided() {
+  try {
+    localStorage.setItem(DK, JSON.stringify(decided));
+  } catch(e) {}
+
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+
+  setTimeout(() => {
+    t.classList.remove('show');
+  }, 1400);
 }
 
-function updateStats(){
-  const fc=currentFilter==='all'?CONTACTS:CONTACTS.filter(c=>c.group===currentFilter);
-  document.getElementById('statPending').textContent=queue.length;
-  document.getElementById('statA').textContent=fc.filter(c=>decided[contactKey(c)]==='anschreiben').length;
-  document.getElementById('statB').textContent=fc.filter(c=>decided[contactKey(c)]==='bereits').length;
-  document.getElementById('hdrDone').textContent=Object.keys(decided).length;
-  document.getElementById('hdrTotal').textContent=CONTACTS.length;
+function updateStats() {
+  document.getElementById('statDone').textContent = Object.keys(decided).length;
+  document.getElementById('hdrDone').textContent = Object.keys(decided).length;
+  document.getElementById('hdrTotal').textContent = CONTACTS.length;
 }
 
-function exportCSV(){
-  const rows=[['Vorname','Nachname','Position','Unternehmen','Score','Gruppe','Status','LinkedIn URL','Verbunden seit']];
-  CONTACTS.forEach(c=>{rows.push([c.firstName,c.lastName,c.position,c.company,c.score,c.group,decided[contactKey(c)]||'offen',c.url,c.connectedOn]);});
-  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
-  a.download='LinkedIn_Outreach_Status.csv';a.click();
+function exportCSV() {
+  const rows = [
+    ['Vorname', 'Nachname', 'Position', 'Unternehmen', 'Score', 'Gruppe', 'Status', 'LinkedIn URL', 'Verbunden seit']
+  ];
+
+  CONTACTS.forEach(c => {
+    rows.push([
+      c.firstName,
+      c.lastName,
+      c.position,
+      c.company,
+      c.score,
+      c.group,
+      decided[contactKey(c)] || 'offen',
+      c.url,
+      c.connectedOn
+    ]);
+  });
+
+  const csv = rows.map(r => {
+    return r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',');
+  }).join('\n');
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+  a.download = 'LinkedIn_Outreach_Status.csv';
+  a.click();
 }
 
-document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowLeft')showMsg('anschreiben');
-  if(e.key==='ArrowRight')decide('bereits');
-  if((e.ctrlKey||e.metaKey)&&e.key==='z')undo();
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') showMsg('anschreiben');
+  if (e.key === 'ArrowRight') decide('bereits');
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') undo();
 });
 
-window.addEventListener('load',()=>{
-  try{
-    const saved=localStorage.getItem(CK);
-    if(!saved)return;
-    CONTACTS=JSON.parse(saved);
-    if(CONTACTS.length===0)return;
-    const sd=localStorage.getItem(DK);
-    decided=sd?JSON.parse(sd):{};
-    document.getElementById('uploadScreen').style.display='none';
+window.addEventListener('load', () => {
+  try {
+    const saved = localStorage.getItem(CK);
+
+    if (!saved) return;
+
+    CONTACTS = JSON.parse(saved);
+
+    if (CONTACTS.length === 0) return;
+
+    const sd = localStorage.getItem(DK);
+    decided = sd ? JSON.parse(sd) : {};
+
+    document.getElementById('uploadScreen').style.display = 'none';
     document.getElementById('mainApp').classList.add('show');
-    updateCounts();buildQueue();renderCard();updateStats();
-  }catch(e){console.warn(e);}
+
+    updateCounts();
+    buildQueue();
+    renderCard();
+    updateStats();
+
+  } catch(e) {
+    console.warn(e);
+  }
 });
 </script>
+
 </body>
 </html>
